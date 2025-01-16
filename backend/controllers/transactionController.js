@@ -1,6 +1,6 @@
 const Transaction = require('../models/Transaction');
-const Budget = require('../models/Budget');
 const Notification = require('../models/Notification');
+const Budget = require('../models/Budget');
 
 // Fetch all transactions for the logged-in user
 const getTransactions = async (req, res) => {
@@ -62,16 +62,17 @@ const createTransaction = async (req, res) => {
       category,
       date,
     });
-// Check for budget limit
-const budget = await Budget.findOne({ user: req.user._id, category });
 
-if (budget && budget.amount < amount) {
-  // Create notification for budget exceeded
-  await Notification.create({
-    user: req.user._id,
-    message: `Budget for category "${category}" exceeded! Transaction amount: ${amount}`,
-    });
-}
+    // Check for budget limit
+    const budget = await Budget.findOne({ user: req.user._id, category });
+
+    if (budget && budget.amount < amount) {
+      // Create notification for budget exceeded
+      await Notification.create({
+        user: req.user._id,
+        message: `Budget for category "${category}" exceeded! Transaction amount: ${amount}`,
+      });
+    }
 
     res.status(201).json(transaction);
   } catch (error) {
@@ -121,7 +122,6 @@ const deleteTransaction = async (req, res) => {
     res.status(400).json({ message: 'Failed to delete transaction', error: error.message });
   }
 };
-
 
 module.exports = { getTransactions, createTransaction, updateTransaction, deleteTransaction };
 

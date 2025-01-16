@@ -1,24 +1,46 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const helmet = require('helmet');
+const connectDB = require('./config/db');
+const { handleErrors } = require('./middlewares/errorMiddleware');
+const userRoutes = require('./routes/userRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
-dotenv.config(); // Load environment variables from .env file
+// Load environment variables
+dotenv.config();
 
+// Database Connection
+connectDB();
+
+// Initialize Express App
 const app = express();
 
 // Middleware
-app.use(express.json()); // To parse JSON data in the request body
-app.use(cors()); // To allow cross-origin requests
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
 
-// Basic route for testing
+// API Routes
+app.use('/api/users', userRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/reports', reportRoutes);
+
+// Error Handling Middleware
+app.use(handleErrors);
+
 app.get('/', (req, res) => {
-    res.send('Hello, Wallet Web Application!');
+  res.send('Welcome to the Wallet Web Application API!');
 });
 
-// Start the server
+
+// Start the Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
-const transactionRoutes = require('./routes/transactionRoutes');
-app.use('/api', transactionRoutes); // Use the /api prefix for all routes in transactionRoutes
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

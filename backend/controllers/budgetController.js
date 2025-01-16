@@ -36,16 +36,16 @@ const getBudgets = async (req, res) => {
 // Update a budget by ID
 const updateBudget = async (req, res) => {
   const { id } = req.params;
-  const { category, amount, startDate, endDate } = req.body;
+  const { amount, category } = req.body;
 
-  if (!category || !amount || !startDate || !endDate) {
-    return res.status(400).json({ message: 'All fields are required' });
+  if (!amount || !category) {
+    return res.status(400).json({ message: 'Amount and category are required' });
   }
 
   try {
     const budget = await Budget.findByIdAndUpdate(
       id,
-      { category, amount, startDate, endDate },
+      { amount, category },
       { new: true, runValidators: true }
     );
 
@@ -53,19 +53,20 @@ const updateBudget = async (req, res) => {
       return res.status(404).json({ message: 'Budget not found' });
     }
 
-// Check if budget is exceeded by transactions
-const totalSpent = await Transaction.aggregate([
-  { $match: { user: req.user._id, category } },
-  { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
-]);
+    // Check if budget is exceeded by transactions
+    const totalSpent = await Transaction.aggregate([
+      { $match: { user: req.user._id, category } },
+      { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
+    ]);
 
-if (totalSpent[0]?.totalAmount > budget.amount) {
-  // Create notification for exceeded budget
-  await Notification.create({
-    user: req.user._id,
-    message: `Budget for category "${category}" has been exceeded!`,
-  });
-}    
+    if (totalSpent[0]?.totalAmount > budget.amount) {
+      // Create notification for exceeded budget
+      await Notification.create({
+        user: req.user._id,
+        message: `Budget for category "${category}" has been exceeded!`,
+      });
+    }
+
     res.status(200).json(budget);
   } catch (error) {
     res.status(400).json({ message: 'Failed to update budget', error: error.message });

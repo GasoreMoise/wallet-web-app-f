@@ -1,25 +1,13 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
+const mongoose = require('mongoose');
 
-const Transaction = sequelize.define('Transaction', {
-  amount: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
+const transactionSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    amount: { type: Number, required: true },
+    description: { type: String, required: true },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   },
-  type: {
-    type: DataTypes.ENUM('income', 'expense'),
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.STRING,
-  },
-  date: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-});
+  { timestamps: true }
+);
 
-Transaction.belongsTo(User); // Each transaction belongs to a user
-
-module.exports = Transaction;
+module.exports = mongoose.model('Transaction', transactionSchema);
